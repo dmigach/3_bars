@@ -1,49 +1,68 @@
 import json
 import codecs
+import os
 
 
 def load_data(filepath):
-    file = codecs.open(filepath, 'r', 'utf-8')
-    return json.load(file)
+    if os.path.exists(filepath):
+        file_handler = codecs.open(filepath, 'r', 'utf-8')
+        return json.load(file_handler)
+    else:
+        raise SystemExit('Wrong file path')
 
 
-def get_biggest_bar(data):
-    maxSeats = 0
-    nameAddress = ''
-    for bar in data:
-        if bar['SeatsCount'] > maxSeats:
-            maxSeats = bar['SeatsCount']
-            nameAddress = bar['Name'] + ' located at ' + bar['Address']
-    return (nameAddress)
+def get_biggest_bar(bars_list):
+    if not bars_list:
+        SystemExit('Empty list of bars')
+    max_seats = bars_list[1]['SeatsCount']
+    for bar in bars_list:
+        if bar['SeatsCount'] > max_seats:
+            max_seats = bar['SeatsCount']
+            name_address = bar['Name'] + ' located at ' + bar['Address']
+    return name_address
 
 
-def get_smallest_bar(data):
-    minSeats = data[1]['SeatsCount']
-    nameAddress = ''
-    for bar in data:
-        if bar['SeatsCount'] <= minSeats:
-            minSeats = bar['SeatsCount']
-            nameAddress = bar['Name'] + ' located at ' + bar['Address']
-    return (nameAddress)
+def get_smallest_bar(bars_list):
+    if not bars_list:
+        SystemExit('Empty list of bars')
+    min_seats = bars_list[1]['SeatsCount']
+    for bar in bars_list:
+        if bar['SeatsCount'] <= min_seats:
+            min_seats = bar['SeatsCount']
+            name_address = bar['Name'] + ' located at ' + bar['Address']
+    return name_address
 
 
-def get_closest_bar(data, longitude, latitude):
-    minimalDistance = abs(float(data[1]['Latitude_WGS84']) - latitude) + \
-                      abs(float(data[1]['Longitude_WGS84']) - longitude)
-    nameAddress = ''
-    for bar in data:
-        barLatitude = float(bar['Latitude_WGS84'])
-        barLongitude = float(bar['Longitude_WGS84'])
-        distance = abs(barLatitude - latitude) + abs(barLongitude - longitude)
-        if distance < minimalDistance:
-            minimalDistance = distance
-            nameAddress = bar['Name'] + ' located at ' + bar['Address']
-    return (nameAddress)
+def get_closest_bar(bars_list, user_longitude, user_latitude):
+    minimal_distance = abs(float(bars_list[1]['Latitude_WGS84']) -
+                           user_latitude) + \
+                           abs(float(bars_list[1]['Longitude_WGS84']) -
+                               user_longitude)
+    for bar in bars_list:
+        bar_latitude = float(bar['Latitude_WGS84'])
+        bar_longitude = float(bar['Longitude_WGS84'])
+        distance_estimate = abs(bar_latitude - user_latitude) + \
+            abs(bar_longitude - user_longitude)
+        if distance_estimate < minimal_distance:
+            minimal_distance = distance_estimate
+            name_address = bar['Name'] + ' located at ' + bar['Address']
+    return name_address
 
 if __name__ == '__main__':
-    data = load_data(input('Enter filepath' + '\n'))
-    print('The biggest bar: {}'.format(get_biggest_bar(data)))
-    print('The smallest bar: {}'.format(get_smallest_bar(data)))
-    print('The closest bar: {}'.format(
-        get_closest_bar(data, float(input('Enter your current longitude\n')),
-                        float(input('Enter your current latitude\n')))))
+    json_filepath = input('Enter filepath' + '\n')
+    bars_list = load_data(json_filepath)
+    try:
+        user_longitude = float(input('Enter your current longitude\n'))
+    except ValueError:
+        raise SystemExit('Longitude must be a number')
+    try:
+        user_latitude = float(input('Enter your current latitude\n'))
+    except ValueError:
+        raise SystemExit('Latutude must be a number')
+
+    print('The biggest bar: {}'.format(get_biggest_bar(bars_list)))
+    print('The smallest bar: {}'.format(get_smallest_bar(bars_list)))
+    print('The closest bar: {}'.format(get_closest_bar(bars_list,
+                                                       user_longitude,
+                                                       user_latitude)))
+
