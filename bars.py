@@ -1,8 +1,3 @@
-
-# coding: utf-8
-
-# In[2]:
-
 import json
 import codecs
 
@@ -33,7 +28,8 @@ def get_smallest_bar(data):
 
 
 def get_closest_bar(data, longitude, latitude):
-    minimalDistance = abs(float(data[1]['Latitude_WGS84']) - latitude) +                       abs(float(data[1]['Longitude_WGS84']) - longitude)
+    minimalDistance = abs(float(data[1]['Latitude_WGS84']) - latitude) + \
+                      abs(float(data[1]['Longitude_WGS84']) - longitude)
     nameAddress = ''
     for bar in data:
         barLatitude = float(bar['Latitude_WGS84'])
@@ -51,14 +47,3 @@ if __name__ == '__main__':
     print('The closest bar: {}'.format(
         get_closest_bar(data, float(input('Enter your current longitude\n')),
                         float(input('Enter your current latitude\n')))))
-
-
-# In[144]:
-
-data = load_data(input('Введите путь к файлу' + '\n'))
-
-
-# In[135]:
-
-decode('Windows-1252').encode('utf-8')
-
