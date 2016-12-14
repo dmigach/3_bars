@@ -1,56 +1,39 @@
 import json
 import codecs
 import os
+from operator import itemgetter
 
 
-def load_data(filepath):
-    if os.path.exists(filepath):
-        file_handler = codecs.open(filepath, 'r', 'utf-8')
-        return json.load(file_handler)
+def load_data(file_path):
+    if os.path.exists(file_path):
+        with codecs.open(file_path, 'r', 'utf-8') as file_handler:
+            return json.load(file_handler)
     else:
         raise SystemExit('Wrong file path')
 
 
 def get_biggest_bar(bars_list):
-    if not bars_list:
-        SystemExit('Empty list of bars')
-    max_seats = bars_list[1]['SeatsCount']
-    for bar in bars_list:
-        if bar['SeatsCount'] > max_seats:
-            max_seats = bar['SeatsCount']
-            name_address = bar['Name'] + ' located at ' + bar['Address']
-    return name_address
+    return [max(bars_list,
+                key=itemgetter('SeatsCount'))[x] for x in ['Name', 'Address']]
 
 
 def get_smallest_bar(bars_list):
-    if not bars_list:
-        SystemExit('Empty list of bars')
-    min_seats = bars_list[1]['SeatsCount']
-    for bar in bars_list:
-        if bar['SeatsCount'] <= min_seats:
-            min_seats = bar['SeatsCount']
-            name_address = bar['Name'] + ' located at ' + bar['Address']
-    return name_address
+    return [min(bars_list,
+                key=itemgetter('SeatsCount'))[x] for x in ['Name', 'Address']]
 
 
-def get_closest_bar(bars_list, user_longitude, user_latitude):
-    minimal_distance = abs(float(bars_list[1]['Latitude_WGS84']) -
-                           user_latitude) + \
-                           abs(float(bars_list[1]['Longitude_WGS84']) -
-                               user_longitude)
+def get_closest_bar(bars_list, usr_longitude, usr_latitude):
+    estimated_distances = []
     for bar in bars_list:
-        bar_latitude = float(bar['Latitude_WGS84'])
-        bar_longitude = float(bar['Longitude_WGS84'])
-        distance_estimate = abs(bar_latitude - user_latitude) + \
-            abs(bar_longitude - user_longitude)
-        if distance_estimate < minimal_distance:
-            minimal_distance = distance_estimate
-            name_address = bar['Name'] + ' located at ' + bar['Address']
-    return name_address
+        estimated_distances.append(abs(float(bar['Latitude_WGS84']) -
+                                       usr_latitude) +
+                                   abs(float(bar['Longitude_WGS84']) -
+                                       usr_longitude))
+    return [bars_list[estimated_distances.index(min(estimated_distances))][x]
+            for x in ['Name', 'Address']]
 
 if __name__ == '__main__':
-    json_filepath = input('Enter filepath' + '\n')
-    bars_list = load_data(json_filepath)
+    list_of_bars = load_data(input('Enter file path' + '\n'))
     try:
         user_longitude = float(input('Enter your current longitude\n'))
     except ValueError:
@@ -58,11 +41,12 @@ if __name__ == '__main__':
     try:
         user_latitude = float(input('Enter your current latitude\n'))
     except ValueError:
-        raise SystemExit('Latutude must be a number')
-
-    print('The biggest bar: {}'.format(get_biggest_bar(bars_list)))
-    print('The smallest bar: {}'.format(get_smallest_bar(bars_list)))
-    print('The closest bar: {}'.format(get_closest_bar(bars_list,
-                                                       user_longitude,
-                                                       user_latitude)))
-
+        raise SystemExit('Latitude must be a number')
+    print('The biggest bar is {},'
+          ' located at {}'.format(*get_biggest_bar(list_of_bars)))
+    print('The smallest bar is {},'
+          ' located at {}'.format(*get_smallest_bar(list_of_bars)))
+    print('The closest bar is {},'
+          ' located at {}'.format(*get_closest_bar(list_of_bars,
+                                                   user_longitude,
+                                                   user_latitude)))
